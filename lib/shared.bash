@@ -38,7 +38,7 @@ list_secrets() {
   local key="$2"
 
   local _list
-  _list=$(vault list -address="$server" -format=yaml "$key" | sed 's/^- //g' )
+  _list=$(vault kv get -address="$server" -format=json "$key" | jq -r '.data.data | keys[]')
   local retVal=${PIPESTATUS[0]}
 
   for lineItem in ${_list} ; do
@@ -48,7 +48,7 @@ list_secrets() {
   return "$retVal"
 }
 
-secret_exists() {
+secret_download() {
   local server="$1"
   local key="$2"
 
@@ -56,23 +56,7 @@ secret_exists() {
   _key_base="$(dirname "$key")"
   local _key_name
   _key_name="$(basename "$key")"
-  local _list
-  _list=$(vault list -address="$server" -format=yaml "$_key_base" )
-
-  echo "${_list}" | grep "^- ${_key_name}$" >& /dev/null
-  # shellcheck disable=SC2181
-  if [ "$?" -ne 0 ] ; then
-    return 1
-  else
-    return 0
-  fi
-}
-
-secret_download() {
-  local server="$1"
-  local key="$2"
-
-  _secret=$(vault read -address="${server}" -field=value "$key" | base64 $BASE64_DECODE_ARGS)
+  _secret=$(vault kv get -address="${server}" -field=${_key_name} "$_key_base" | base64 $BASE64_DECODE_ARGS)
   # shellcheck disable=SC2181
   if [ "$?" -ne 0 ] ; then
     return 1
