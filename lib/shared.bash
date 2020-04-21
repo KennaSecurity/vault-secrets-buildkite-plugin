@@ -19,17 +19,17 @@ vault_auth() {
   # BUILDKITE_PLUGIN_VAULT_SECRETS_ROLE
   [ -n "${server:-}" ] && auth_params="${auth_params} -address=${server}"
   [ -n "${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_METHOD:-}" ] && auth_params="${auth_params} -method=${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_METHOD}"
-  [ -n "${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_HEADER:-}" ] && auth_params="${auth_params} -header_value=${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_HEADER}"
+  [ -n "${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_HEADER:-}" ] && auth_params="${auth_params} header_value=${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_HEADER}"
   [ -n "${BUILDKITE_PLUGIN_VAULT_SECRETS_ROLE:-}" ] && auth_params="${auth_params} role=${BUILDKITE_PLUGIN_VAULT_SECRETS_ROLE}"
 
   if [ -n "${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_METHOD:-}" ] ; then
     # don't output the token to log, even though it's a temporary token
     # shellcheck disable=SC2086
-    vault auth $auth_params | grep -v ^token:
+    vault login $auth_params | grep -v ^token:
     return "${PIPESTATUS[0]}"
   else
     # shellcheck disable=SC2086
-    echo "${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_TOKEN:-}" | vault auth ${auth_params:-} -
+    echo "${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_TOKEN:-}" | vault login ${auth_params:-} -
   fi
 }
 
